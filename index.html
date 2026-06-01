@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#C4A962">
+  <title>Church Seating Map</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Lato:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f5f3ef 0%, #ebe6dd 100%);
+      min-height: 100vh;
+      font-family: 'Lato', sans-serif;
+      color: #3a3530;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .header h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 2rem;
+      font-weight: 600;
+      color: #3a3530;
+      margin-bottom: 0.25rem;
+    }
+
+    /* Chart bar */
+    .chart-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .chart-name-input {
+      border: none;
+      background: transparent;
+      font-size: 1.1rem;
+      color: #C4A962;
+      text-align: center;
+      max-width: 320px;
+      padding: 0.25rem 0.5rem;
+      border-bottom: 1px dashed transparent;
+      font-family: 'Lato', sans-serif;
+    }
+
+    .chart-name-input:hover {
+      border-bottom-color: #d8cbb0;
+    }
+
+    .chart-name-input:focus {
+      outline: none;
+      border-bottom: 1px solid #C4A962;
+    }
+
+    .chart-name-input::placeholder {
+      color: #c4b5a1;
+    }
+
+    .save-status {
+      font-size: 0.8rem;
+      color: #9aa87f;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .save-status.show {
+      opacity: 1;
+    }
+
+    /* Main Input Section */
+    .input-section {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .input-section label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #6b5d54;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .family-input {
+      width: 100%;
+      max-width: 400px;
+      padding: 1rem 1.25rem;
+      border: 3px solid #C4A962;
+      border-radius: 10px;
+      font-size: 1.25rem;
+      font-family: 'Lato', sans-serif;
+      text-align: center;
+    }
+
+    .family-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(196, 169, 98, 0.2);
+    }
+
+    .input-hint {
+      margin-top: 0.75rem;
+      color: #8b7d74;
+      font-size: 0.95rem;
+    }
+
+    .current-color {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+      border: 2px solid rgba(0,0,0,0.1);
+    }
+
+    /* Altar Section */
+    .altar-section {
+      background: linear-gradient(135deg, #f5f3ef 0%, #e8e0d5 100%);
+      border: 2px solid #c4b5a1;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .podium {
+      width: 70px;
+      height: 50px;
+      background: #8b7355;
+      border-radius: 8px;
+      margin: 0 auto 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .preacher-seats {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
+    .preacher-seat {
+      width: 40px;
+      height: 40px;
+      background: #c4a962;
+      border-radius: 6px;
+      opacity: 0.5;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+      font-size: 0.85rem;
+      color: #6b5d54;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .legend-item svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    /* Seating Layout */
+    .seating-layout {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .seating-side {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .seating-side::before {
+      content: attr(data-side);
+      display: block;
+      text-align: center;
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      color: #8b7355;
+      padding: 0.4rem;
+      background: #f9f7f4;
+      border-radius: 6px;
+      margin-bottom: 0.25rem;
+    }
+
+    .bench {
+      display: flex;
+      gap: 0.2rem;
+      align-items: center;
+    }
+
+    .seating-side.left .bench {
+      justify-content: flex-end;
+    }
+
+    .seating-side.right .bench {
+      justify-content: flex-start;
+    }
+
+    /* Bench rail behind seats so they look anchored, not floating */
+    .bench::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 4px;
+      height: 3px;
+      background: #ddd2c2;
+      border-radius: 2px;
+      z-index: 0;
+    }
+
+    .bench {
+      position: relative;
+    }
+
+    .seat {
+      position: relative;
+      z-index: 1;
+      width: 44px;
+      height: 44px;
+      border: none;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+      transition: transform 0.12s ease;
+      --seat-fill: #ffffff;
+      --seat-stroke: #c4b5a1;
+      --seat-text: #3a3530;
+    }
+
+    .seat .seat-icon {
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+
+    .seat .seat-icon .body {
+      fill: var(--seat-fill);
+      stroke: var(--seat-stroke);
+      stroke-width: 2;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .seat .seat-icon .legs {
+      fill: none;
+      stroke: var(--seat-stroke);
+      stroke-width: 2;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .seat .initials {
+      position: absolute;
+      inset: 0 0 18% 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: var(--seat-text);
+      pointer-events: none;
+      line-height: 1;
+      padding: 1px;
+      word-break: break-word;
+      text-align: center;
+    }
+
+    .seat:hover {
+      transform: translateY(-2px);
+    }
+
+    .seat:hover .seat-icon .body {
+      stroke: #C4A962;
+    }
+
+    .seat:focus-visible {
+      outline: 3px solid #C4A962;
+      outline-offset: 2px;
+      border-radius: 6px;
+    }
+
+    .seat.extra-chair {
+      width: 38px;
+      height: 38px;
+    }
+
+    .aisle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .aisle-label {
+      writing-mode: vertical-rl;
+      font-family: 'Cinzel', serif;
+      color: #8b7355;
+      font-size: 1.2rem;
+      letter-spacing: 3px;
+      opacity: 0.25;
+    }
+
+    /* Summary Section */
+    .summary-section {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 1rem;
+    }
+
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #e5ddd5;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .summary-header h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.5rem;
+      color: #3a3530;
+    }
+
+    .summary-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .total-count {
+      background: #C4A962;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    .btn {
+      padding: 0.65rem 1.25rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Lato', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-print {
+      background: #C4A962;
+      color: white;
+    }
+
+    .btn-print:hover {
+      background: #b39852;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(196, 169, 98, 0.3);
+    }
+
+    .family-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .family-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: #f9f7f4;
+      border-radius: 8px;
+      border-left: 4px solid #C4A962;
+    }
+
+    .family-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid rgba(0,0,0,0.1);
+    }
+
+    .family-info {
+      flex: 1;
+    }
+
+    .family-name {
+      font-weight: 600;
+      color: #3a3530;
+    }
+
+    .family-seats {
+      font-size: 0.85rem;
+      color: #6b5d54;
+      margin-top: 0.2rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: #8b7d74;
+    }
+
+    .empty-state-icon {
+      font-size: 2.5rem;
+      opacity: 0.3;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Toggle buttons (Charts / Options) */
+    .toggle-btn {
+      background: none;
+      border: 2px solid #e5ddd5;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: #6b5d54;
+      transition: all 0.2s ease;
+      font-family: 'Lato', sans-serif;
+    }
+
+    .toggle-btn:hover {
+      border-color: #C4A962;
+      color: #3a3530;
+    }
+
+    /* Panels */
+    .panel {
+      background: #f9f7f4;
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+
+    .panel.open {
+      display: block;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .panel-head strong {
+      font-size: 1.05rem;
+      color: #3a3530;
+    }
+
+    .options-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .option-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .option-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .option-item label {
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .btn-option {
+      padding: 0.5rem 1rem;
+      border: 2px solid #d5cdc5;
+      border-radius: 6px;
+      background: white;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Lato', sans-serif;
+      color: #3a3530;
+    }
+
+    .btn-option:hover {
+      border-color: #C4A962;
+      background: #faf9f7;
+    }
+
+    .btn-danger {
+      border-color: #e57373;
+      color: #c62828;
+    }
+
+    .btn-danger:hover {
+      background: #ffebee;
+      border-color: #c62828;
+    }
+
+    /* Charts list */
+    .charts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .chart-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.85rem;
+      background: white;
+      border: 2px solid #ece5da;
+      border-radius: 8px;
+    }
+
+    .chart-row.current {
+      border-color: #C4A962;
+      background: #fffdf6;
+    }
+
+    .chart-row-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chart-row-name {
+      font-weight: 600;
+      color: #3a3530;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chart-row-meta {
+      font-size: 0.8rem;
+      color: #8b7d74;
+      margin-top: 0.15rem;
+    }
+
+    .chart-row-actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-shrink: 0;
+    }
+
+    .btn-mini {
+      padding: 0.35rem 0.7rem;
+      border: 1px solid #d5cdc5;
+      border-radius: 6px;
+      background: white;
+      font-size: 0.82rem;
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+      color: #3a3530;
+    }
+
+    .btn-mini:hover {
+      border-color: #C4A962;
+    }
+
+    .btn-mini.danger {
+      color: #c62828;
+      border-color: #e9b4b4;
+    }
+
+    .btn-mini.danger:hover {
+      background: #ffebee;
+    }
+
+    .current-tag {
+      font-size: 0.7rem;
+      background: #C4A962;
+      color: white;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+
+    /* Notification */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 1000;
+      animation: slideIn 0.3s ease-out;
+      max-width: 300px;
+    }
+
+    .notification.success { background: #4CAF50; color: white; }
+    .notification.info { background: #2196F3; color: white; }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: white;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .input-section, .toggle-btn, .panel, .btn, .summary-actions, .save-status {
+        display: none !important;
+      }
+
+      .container { padding: 0.5cm; max-width: 100%; }
+      .header h1 { font-size: 1.5rem; }
+      .chart-name-input { font-size: 1rem; border: none !important; color: #6b5d54; }
+      .altar-section { padding: 0.75rem; margin-bottom: 1rem; }
+      .seating-layout { gap: 1rem; margin-bottom: 1rem; }
+
+      .seat { width: 34px; height: 34px; }
+      .seat.extra-chair { width: 30px; height: 30px; }
+
+      .summary-section {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        padding: 1rem;
+        page-break-inside: avoid;
+      }
+
+      .summary-header { margin-bottom: 0.75rem; padding-bottom: 0.5rem; }
+      .summary-header h2 { font-size: 1.2rem; }
+      .family-item { padding: 0.5rem 0.75rem; margin-bottom: 0.25rem; }
+    }
+
+    /* Pocket Print - compact list only */
+    @media print {
+      body.pocket-print .altar-section,
+      body.pocket-print .legend,
+      body.pocket-print .seating-layout {
+        display: none !important;
+      }
+
+      body.pocket-print .container { padding: 0.25cm; }
+      body.pocket-print .header { margin-bottom: 0.5rem; }
+      body.pocket-print .header h1 { font-size: 1rem; }
+      body.pocket-print .summary-section { columns: 2; column-gap: 1cm; }
+      body.pocket-print .summary-header { column-span: all; }
+
+      body.pocket-print .family-item {
+        break-inside: avoid;
+        padding: 0.3rem 0.5rem;
+        font-size: 0.85rem;
+      }
+
+      body.pocket-print .family-color { width: 14px; height: 14px; }
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .seating-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .aisle { display: none; }
+      .seating-side.left .bench,
+      .seating-side.right .bench { justify-content: center; }
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 1rem; }
+      .header h1 { font-size: 1.6rem; }
+      .family-input { font-size: 1.1rem; padding: 0.9rem 1rem; }
+      .seat { width: 40px; height: 40px; }
+      .seat.extra-chair { width: 34px; height: 34px; }
+      .summary-header { flex-direction: column; align-items: stretch; }
+      .summary-actions { justify-content: space-between; }
+      .options-grid { flex-direction: column; align-items: stretch; }
+      .btn-option { width: 100%; justify-content: center; }
+    }
+
+    @media (max-width: 480px) {
+      .seat { width: 34px; height: 34px; }
+      .seat.extra-chair { width: 30px; height: 30px; }
+      .bench { gap: 0.15rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Church Seating Map</h1>
+      <div class="chart-bar">
+        <input type="text" class="chart-name-input" id="chartName" placeholder="Untitled chart" aria-label="Chart name">
+        <span class="save-status" id="saveStatus">Saved</span>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <label for="familyName">Family / Guest Name</label>
+      <input type="text" class="family-input" id="familyName" placeholder="Type a name, then tap seats">
+      <p class="input-hint">
+        Type a name above, then click seats to assign them.
+        <span class="current-color" id="currentColor"></span>
+      </p>
+    </div>
+
+    <div class="altar-section">
+      <div class="podium"></div>
+      <div class="preacher-seats">
+        <div class="preacher-seat"></div>
+        <div class="preacher-seat"></div>
+        <div class="preacher-seat"></div>
+        <div class="preacher-seat"></div>
+      </div>
+    </div>
+
+    <div class="legend" id="legend">
+      <div class="legend-item">
+        <svg viewBox="0 0 44 44" aria-hidden="true"><rect class="body" x="8" y="6" width="28" height="9" rx="3" style="fill:#fff;stroke:#c4b5a1;stroke-width:2"></rect><rect class="body" x="6" y="18" width="32" height="15" rx="4" style="fill:#fff;stroke:#c4b5a1;stroke-width:2"></rect></svg>
+        <span>Pew seat</span>
+      </div>
+      <div class="legend-item" id="legendFolding" style="display:none">
+        <svg viewBox="0 0 44 44" aria-hidden="true"><rect class="body" x="12" y="5" width="20" height="7" rx="2" style="fill:#fff;stroke:#c4b5a1;stroke-width:2"></rect><rect class="body" x="10" y="16" width="24" height="6" rx="2" style="fill:#fff;stroke:#c4b5a1;stroke-width:2"></rect><path class="legs" d="M12 22 L30 36 M32 22 L14 36" style="fill:none;stroke:#c4b5a1;stroke-width:2;stroke-linecap:round"></path></svg>
+        <span>Folding chair</span>
+      </div>
+    </div>
+
+    <div class="seating-layout">
+      <div class="seating-side left" id="leftSide" data-side="Left Side"></div>
+      <div class="aisle">
+        <div class="aisle-label">AISLE</div>
+      </div>
+      <div class="seating-side right" id="rightSide" data-side="Right Side"></div>
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-header">
+        <h2>Assigned Seats</h2>
+        <div class="summary-actions">
+          <span class="total-count" id="totalCount">0 seats</span>
+          <button class="btn btn-print" onclick="printMap()">🖨️ Print</button>
+          <button class="toggle-btn" onclick="togglePanel('chartsPanel')">📁 Charts</button>
+          <button class="toggle-btn" onclick="togglePanel('optionsPanel')">⚙️ Options</button>
+        </div>
+      </div>
+      <div id="familyList" class="family-list">
+        <div class="empty-state">
+          <div class="empty-state-icon">🪑</div>
+          <p>No seats assigned yet.<br>Type a family name above and click seats to get started.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="chartsPanel">
+      <div class="panel-head">
+        <strong>Saved charts</strong>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="btn-option" onclick="newChartPrompt()">＋ New chart</button>
+          <button class="btn-option" onclick="saveAsChart()">📋 Save as copy</button>
+        </div>
+      </div>
+      <div class="charts-list" id="chartsList"></div>
+    </div>
+
+    <div class="panel" id="optionsPanel">
+      <div class="options-grid">
+        <div class="option-item">
+          <input type="checkbox" id="extraChairs">
+          <label for="extraChairs">Show extra chairs at row ends</label>
+        </div>
+        <div class="option-item">
+          <input type="checkbox" id="pocketPrint">
+          <label for="pocketPrint">Pocket-size print (list only)</label>
+        </div>
+        <button class="btn-option" onclick="exportJSON()">📤 Export (backup)</button>
+        <button class="btn-option" onclick="exportCSV()">📊 Export (spreadsheet)</button>
+        <button class="btn-option" onclick="document.getElementById('importFile').click()">📥 Import File</button>
+        <input type="file" id="importFile" accept=".json,.csv" style="display: none;" onchange="importFile(event)">
+        <button class="btn-option btn-danger" onclick="clearAll()">Clear This Chart</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    // ---- Constants ----------------------------------------------------------
+    const SCHEMA_VERSION = 2;
+    const BENCHES = 14;
+    const SEATS_PER_BENCH = 10;
+    const STORE_KEY = 'churchSeatingStore';
+    const LEGACY_KEY = 'churchSeatingSimple';
+
+    // Distinct base palette; colors past this are generated (see colorAt).
+    const COLORS = [
+      '#5C8D89', '#D4A574', '#7B68A6', '#C77B58', '#6B8E6B',
+      '#B8860B', '#8B5A6B', '#4A708B', '#9ACD32', '#CD853F',
+      '#708090', '#DB7093', '#5F9EA0', '#D2691E', '#6A5ACD'
+    ];
+
+    // ---- Color helpers ------------------------------------------------------
+    function hslToHex(h, s, l) {
+      s /= 100; l /= 100;
+      const k = n => (n + h / 30) % 12;
+      const a = s * Math.min(l, 1 - l);
+      const f = n => {
+        const c = l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+        return Math.round(255 * c).toString(16).padStart(2, '0');
+      };
+      return `#${f(0)}${f(8)}${f(4)}`;
+    }
+
+    // Returns a distinct color for index i. First 15 from palette, then
+    // golden-angle HSL so families past 15 never silently collide.
+    function colorAt(i) {
+      if (i < COLORS.length) return COLORS[i];
+      const hue = Math.round((i * 137.508) % 360);
+      const light = (i % 2 === 0) ? 45 : 58;
+      return hslToHex(hue, 52, light);
+    }
+
+    // Pick readable initials color (dark/light) based on fill luminance.
+    function textColorFor(hex) {
+      const c = String(hex).replace('#', '');
+      if (c.length < 6) return '#ffffff';
+      const r = parseInt(c.substr(0, 2), 16);
+      const g = parseInt(c.substr(2, 2), 16);
+      const b = parseInt(c.substr(4, 2), 16);
+      const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return lum > 0.62 ? '#2a2622' : '#ffffff';
+    }
+
+    function darken(hex, amount) {
+      const c = String(hex).replace('#', '');
+      if (c.length < 6) return hex;
+      const adj = v => Math.max(0, Math.round(parseInt(v, 16) * (1 - amount))).toString(16).padStart(2, '0');
+      return `#${adj(c.substr(0, 2))}${adj(c.substr(2, 2))}${adj(c.substr(4, 2))}`;
+    }
+
+    // ---- Storage adapter ----------------------------------------------------
+    // Persistence lives behind this interface. localStorage today; a Supabase
+    // adapter satisfying the same shape can swap in later with no app changes.
+    const storage = {
+      _read() {
+        try {
+          return JSON.parse(localStorage.getItem(STORE_KEY)) || { charts: {}, lastOpenedId: null };
+        } catch (e) {
+          return { charts: {}, lastOpenedId: null };
+        }
+      },
+      _write(store) {
+        localStorage.setItem(STORE_KEY, JSON.stringify(store));
+      },
+      listCharts() {
+        const store = this._read();
+        return Object.values(store.charts).sort((a, b) =>
+          String(b.updatedAt).localeCompare(String(a.updatedAt)));
+      },
+      loadChart(id) {
+        return this._read().charts[id] || null;
+      },
+      saveChart(chart) {
+        const store = this._read();
+        store.charts[chart.id] = chart;
+        store.lastOpenedId = chart.id;
+        this._write(store);
+      },
+      deleteChart(id) {
+        const store = this._read();
+        delete store.charts[id];
+        if (store.lastOpenedId === id) store.lastOpenedId = null;
+        this._write(store);
+      },
+      getLastOpenedId() {
+        return this._read().lastOpenedId;
+      }
+    };
+
+    // ---- Chart model --------------------------------------------------------
+    function genId() {
+      return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function nowISO() {
+      return new Date().toISOString();
+    }
+
+    function newChart(name) {
+      return {
+        schemaVersion: SCHEMA_VERSION,
+        id: genId(),
+        name: name || 'Untitled chart',
+        createdAt: nowISO(),
+        updatedAt: nowISO(),
+        settings: { showExtraChairs: false },
+        families: {},   // { 'Smith': '#5C8D89' }
+        seats: {},      // { 'left-0-3': { family, color } }
+        colorIndex: 0
+      };
+    }
+
+    // Current in-memory chart. All edits mutate this, then autoSave().
+    let chart = newChart();
+
+    // ---- Seat key parsing ---------------------------------------------------
+    // Keys: 'left-0-3' (regular) or 'left-0-extra-1' / 'right-5-extra-2'.
+    function parseKey(key) {
+      const parts = key.split('-');
+      const side = parts[0];
+      const bench = parseInt(parts[1], 10);
+      const seat = parts.slice(2).join('-'); // '3' or 'extra-1'
+      const isExtra = seat.startsWith('extra');
+      return { side, bench, seat, isExtra };
+    }
+
+    // Sort position within a bench: extra-1 at far start, extra-2 at far end.
+    function seatPos(seat) {
+      if (seat === 'extra-1') return -1;
+      if (seat === 'extra-2') return 999;
+      return parseInt(seat, 10);
+    }
+
+    function seatShortLabel(key) {
+      const { side, bench, seat, isExtra } = parseKey(key);
+      const sideLabel = side === 'left' ? 'L' : 'R';
+      const benchNum = bench + 1;
+      if (isExtra) return `${sideLabel}${benchNum}-${seat === 'extra-1' ? 'E1' : 'E2'}`;
+      return `${sideLabel}${benchNum}-${parseInt(seat, 10) + 1}`;
+    }
+
+    function seatHumanLabel(side, bench, seat) {
+      const sideLabel = side === 'left' ? 'Left' : 'Right';
+      const isExtra = String(seat).startsWith('extra');
+      if (isExtra) {
+        const which = seat === 'extra-1' ? 'start' : 'end';
+        return `${sideLabel} side, row ${bench + 1}, folding chair at ${which}`;
+      }
+      return `${sideLabel} side, row ${bench + 1}, seat ${seat + 1}`;
+    }
+
+    // ---- Color assignment ---------------------------------------------------
+    function getColorForFamily(familyName) {
+      const normalized = familyName.trim();
+      if (!normalized) return COLORS[0];
+      if (!chart.families[normalized]) {
+        chart.families[normalized] = colorAt(chart.colorIndex);
+        chart.colorIndex++;
+      }
+      return chart.families[normalized];
+    }
+
+    function updateCurrentColorIndicator() {
+      const familyName = document.getElementById('familyName').value.trim();
+      const colorEl = document.getElementById('currentColor');
+      if (familyName) {
+        colorEl.style.backgroundColor = getColorForFamily(familyName);
+        colorEl.style.display = 'inline-block';
+      } else {
+        colorEl.style.display = 'none';
+      }
+    }
+
+    // ---- Seat rendering -----------------------------------------------------
+    const PEW_SVG =
+      '<svg class="seat-icon" viewBox="0 0 44 44" aria-hidden="true">' +
+      '<rect class="body" x="8" y="6" width="28" height="9" rx="3"></rect>' +
+      '<rect class="body" x="6" y="18" width="32" height="15" rx="4"></rect>' +
+      '</svg>';
+
+    const FOLDING_SVG =
+      '<svg class="seat-icon" viewBox="0 0 44 44" aria-hidden="true">' +
+      '<rect class="body" x="12" y="5" width="20" height="7" rx="2"></rect>' +
+      '<rect class="body" x="10" y="16" width="24" height="6" rx="2"></rect>' +
+      '<path class="legs" d="M12 22 L30 36 M32 22 L14 36"></path>' +
+      '</svg>';
+
+    function createSeating() {
+      const leftSide = document.getElementById('leftSide');
+      const rightSide = document.getElementById('rightSide');
+      const showExtra = chart.settings.showExtraChairs;
+
+      leftSide.innerHTML = '';
+      rightSide.innerHTML = '';
+      leftSide.setAttribute('data-side', 'Left Side');
+      rightSide.setAttribute('data-side', 'Right Side');
+
+      for (let bench = 0; bench < BENCHES; bench++) {
+        const leftBench = document.createElement('div');
+        leftBench.className = 'bench';
+        const rightBench = document.createElement('div');
+        rightBench.className = 'bench';
+
+        if (showExtra) {
+          leftBench.appendChild(createSeat('left', bench, 'extra-1', true));
+        }
+
+        for (let seat = 0; seat < SEATS_PER_BENCH; seat++) {
+          leftBench.appendChild(createSeat('left', bench, seat, false));
+          rightBench.appendChild(createSeat('right', bench, seat, false));
+        }
+
+        if (showExtra) {
+          leftBench.appendChild(createSeat('left', bench, 'extra-2', true));
+          const er1 = createSeat('right', bench, 'extra-1', true);
+          rightBench.insertBefore(er1, rightBench.firstChild);
+          rightBench.appendChild(createSeat('right', bench, 'extra-2', true));
+        }
+
+        leftSide.appendChild(leftBench);
+        rightSide.appendChild(rightBench);
+      }
+
+      document.getElementById('legendFolding').style.display = showExtra ? 'flex' : 'none';
+      updateSeatDisplay();
+    }
+
+    function createSeat(side, bench, seat, isExtra) {
+      const seatEl = document.createElement('button');
+      seatEl.type = 'button';
+      seatEl.className = 'seat' + (isExtra ? ' extra-chair' : '');
+      seatEl.dataset.side = side;
+      seatEl.dataset.bench = bench;
+      seatEl.dataset.seat = seat;
+      seatEl.innerHTML = (isExtra ? FOLDING_SVG : PEW_SVG) + '<span class="initials"></span>';
+      seatEl.addEventListener('click', () => handleSeatClick(side, bench, seat));
+      return seatEl;
+    }
+
+    function handleSeatClick(side, bench, seat) {
+      const key = `${side}-${bench}-${seat}`;
+
+      if (chart.seats[key]) {
+        delete chart.seats[key];
+      } else {
+        const familyName = document.getElementById('familyName').value.trim();
+        if (!familyName) {
+          showNotification('Please enter a family name first', 'info');
+          document.getElementById('familyName').focus();
+          return;
+        }
+        chart.seats[key] = { family: familyName, color: getColorForFamily(familyName) };
+      }
+
+      updateSeatDisplay();
+      updateSummary();
+      autoSave();
+    }
+
+    function updateSeatDisplay() {
+      document.querySelectorAll('.seat').forEach(seatEl => {
+        const side = seatEl.dataset.side;
+        const bench = parseInt(seatEl.dataset.bench, 10);
+        const seat = seatEl.dataset.seat;
+        const key = `${side}-${bench}-${seat}`;
+        const data = chart.seats[key];
+        const initialsEl = seatEl.querySelector('.initials');
+
+        if (data) {
+          seatEl.style.setProperty('--seat-fill', data.color);
+          seatEl.style.setProperty('--seat-stroke', darken(data.color, 0.25));
+          seatEl.style.setProperty('--seat-text', textColorFor(data.color));
+          initialsEl.textContent = getInitials(data.family);
+          seatEl.setAttribute('aria-pressed', 'true');
+          seatEl.setAttribute('aria-label', seatHumanLabel(side, bench, seat) + ', assigned to ' + data.family + '. Activate to clear.');
+        } else {
+          seatEl.style.setProperty('--seat-fill', '#ffffff');
+          seatEl.style.setProperty('--seat-stroke', '#c4b5a1');
+          seatEl.style.setProperty('--seat-text', '#3a3530');
+          initialsEl.textContent = '';
+          seatEl.setAttribute('aria-pressed', 'false');
+          seatEl.setAttribute('aria-label', seatHumanLabel(side, bench, seat) + ', empty. Activate to assign current family.');
+        }
+      });
+    }
+
+    function getInitials(name) {
+      return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 3);
+    }
+
+    // ---- Summary ------------------------------------------------------------
+    function updateSummary() {
+      const familyList = document.getElementById('familyList');
+      const totalCount = document.getElementById('totalCount');
+
+      const families = {};
+      Object.entries(chart.seats).forEach(([key, data]) => {
+        if (!families[data.family]) families[data.family] = { color: data.color, seats: [] };
+        families[data.family].seats.push(key);
+      });
+
+      const totalSeats = Object.keys(chart.seats).length;
+      totalCount.textContent = `${totalSeats} seat${totalSeats !== 1 ? 's' : ''}`;
+
+      if (Object.keys(families).length === 0) {
+        familyList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🪑</div>
+            <p>No seats assigned yet.<br>Type a family name above and click seats to get started.</p>
+          </div>`;
+        return;
+      }
+
+      const sorted = Object.entries(families).sort((a, b) => a[0].localeCompare(b[0]));
+
+      familyList.innerHTML = sorted.map(([name, data]) => {
+        const seatDescriptions = data.seats
+          .slice()
+          .sort(compareKeys)
+          .map(seatShortLabel)
+          .join(', ');
+        return `
+          <div class="family-item" style="border-left-color: ${data.color}">
+            <div class="family-color" style="background-color: ${data.color}"></div>
+            <div class="family-info">
+              <div class="family-name">${escapeHtml(name)}</div>
+              <div class="family-seats">${data.seats.length} seat${data.seats.length !== 1 ? 's' : ''}: ${seatDescriptions}</div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // Numeric, layout-aware seat ordering (fixes lexicographic L10-before-L2).
+    function compareKeys(a, b) {
+      const pa = parseKey(a), pb = parseKey(b);
+      if (pa.side !== pb.side) return pa.side === 'left' ? -1 : 1;
+      if (pa.bench !== pb.bench) return pa.bench - pb.bench;
+      return seatPos(pa.seat) - seatPos(pb.seat);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- Panels -------------------------------------------------------------
+    function togglePanel(id) {
+      const panel = document.getElementById(id);
+      const wasOpen = panel.classList.contains('open');
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('open'));
+      if (!wasOpen) {
+        panel.classList.add('open');
+        if (id === 'chartsPanel') renderChartsList();
+      }
+    }
+
+    function printMap() {
+      const isPocket = document.getElementById('pocketPrint').checked;
+      if (isPocket) document.body.classList.add('pocket-print');
+      window.print();
+      document.body.classList.remove('pocket-print');
+    }
+
+    // ---- Multi-event chart management ---------------------------------------
+    let saveTimer = null;
+    function flashSaved() {
+      const el = document.getElementById('saveStatus');
+      el.classList.add('show');
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => el.classList.remove('show'), 1200);
+    }
+
+    function autoSave() {
+      chart.updatedAt = nowISO();
+      storage.saveChart(chart);
+      flashSaved();
+    }
+
+    function applyChartToUI() {
+      document.getElementById('chartName').value = chart.name === 'Untitled chart' ? '' : chart.name;
+      document.getElementById('extraChairs').checked = chart.settings.showExtraChairs;
+      createSeating();
+      updateSummary();
+      updateCurrentColorIndicator();
+    }
+
+    function openChart(id) {
+      const loaded = storage.loadChart(id);
+      if (!loaded) return;
+      chart = loaded;
+      // Backfill any fields a future/old chart might lack.
+      chart.settings = chart.settings || { showExtraChairs: false };
+      chart.families = chart.families || {};
+      chart.seats = chart.seats || {};
+      chart.colorIndex = chart.colorIndex || Object.keys(chart.families).length;
+      applyChartToUI();
+      storage.saveChart(chart); // marks as last opened
+      togglePanel('chartsPanel');
+      showNotification(`Opened "${chart.name}"`, 'success');
+    }
+
+    function newChartPrompt() {
+      const name = prompt('Name for the new chart:', '');
+      if (name === null) return;
+      chart = newChart(name.trim() || 'Untitled chart');
+      applyChartToUI();
+      autoSave();
+      togglePanel('chartsPanel');
+      showNotification('New chart created', 'success');
+    }
+
+    function saveAsChart() {
+      const base = chart.name && chart.name !== 'Untitled chart' ? chart.name : 'Chart';
+      const name = prompt('Name for the copy:', base + ' (copy)');
+      if (name === null) return;
+      const copy = JSON.parse(JSON.stringify(chart));
+      copy.id = genId();
+      copy.name = name.trim() || (base + ' (copy)');
+      copy.createdAt = nowISO();
+      copy.updatedAt = nowISO();
+      chart = copy;
+      applyChartToUI();
+      autoSave();
+      renderChartsList();
+      showNotification('Saved as a copy', 'success');
+    }
+
+    function duplicateChart(id) {
+      const src = storage.loadChart(id);
+      if (!src) return;
+      const copy = JSON.parse(JSON.stringify(src));
+      copy.id = genId();
+      copy.name = src.name + ' (copy)';
+      copy.createdAt = nowISO();
+      copy.updatedAt = nowISO();
+      storage.saveChart(copy);
+      renderChartsList();
+      showNotification('Chart duplicated', 'success');
+    }
+
+    function deleteChartById(id) {
+      const target = storage.loadChart(id);
+      if (!target) return;
+      if (!confirm(`Delete "${target.name}"? This cannot be undone.`)) return;
+      storage.deleteChart(id);
+      if (chart.id === id) {
+        const remaining = storage.listCharts();
+        if (remaining.length) {
+          openChartSilent(remaining[0].id);
+        } else {
+          chart = newChart();
+          applyChartToUI();
+          autoSave();
+        }
+      }
+      renderChartsList();
+      showNotification('Chart deleted', 'info');
+    }
+
+    function openChartSilent(id) {
+      const loaded = storage.loadChart(id);
+      if (!loaded) return;
+      chart = loaded;
+      chart.settings = chart.settings || { showExtraChairs: false };
+      chart.colorIndex = chart.colorIndex || Object.keys(chart.families || {}).length;
+      applyChartToUI();
+      storage.saveChart(chart);
+    }
+
+    function renameChart(value) {
+      chart.name = value.trim() || 'Untitled chart';
+      autoSave();
+    }
+
+    function renderChartsList() {
+      const list = document.getElementById('chartsList');
+      const charts = storage.listCharts();
+      if (!charts.length) {
+        list.innerHTML = '<p style="color:#8b7d74;font-size:0.9rem;">No saved charts yet. This one saves automatically as you work.</p>';
+        return;
+      }
+      list.innerHTML = charts.map(c => {
+        const seatCount = Object.keys(c.seats || {}).length;
+        const when = new Date(c.updatedAt).toLocaleDateString();
+        const isCurrent = c.id === chart.id;
+        return `
+          <div class="chart-row ${isCurrent ? 'current' : ''}">
+            <div class="chart-row-info">
+              <div class="chart-row-name">${escapeHtml(c.name)}${isCurrent ? '<span class="current-tag">current</span>' : ''}</div>
+              <div class="chart-row-meta">${seatCount} seat${seatCount !== 1 ? 's' : ''} · updated ${when}</div>
+            </div>
+            <div class="chart-row-actions">
+              ${isCurrent ? '' : `<button class="btn-mini" onclick="openChart('${c.id}')">Open</button>`}
+              <button class="btn-mini" onclick="duplicateChart('${c.id}')">Duplicate</button>
+              <button class="btn-mini danger" onclick="deleteChartById('${c.id}')">Delete</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ---- Export / Import ----------------------------------------------------
+    function downloadBlob(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function safeFileName(name) {
+      return (name || 'seating').replace(/[^a-z0-9\-_]+/gi, '-').replace(/^-+|-+$/g, '') || 'seating';
+    }
+
+    // Lossless backup — preserves every field incl. both folding chairs.
+    function exportJSON() {
+      const content = JSON.stringify(chart, null, 2);
+      downloadBlob(content, `${safeFileName(chart.name)}-${nowISO().split('T')[0]}.json`, 'application/json');
+      showNotification('Backup file downloaded', 'success');
+    }
+
+    function exportCSV() {
+      let csv = `Event: ${chart.name}\n`;
+      csv += `Date: ${new Date().toLocaleDateString()}\n\n`;
+      csv += 'Family Name,Side,Bench,Seat,Color\n';
+
+      const families = {};
+      Object.entries(chart.seats).forEach(([key, data]) => {
+        if (!families[data.family]) families[data.family] = [];
+        families[data.family].push({ key, color: data.color });
+      });
+
+      Object.entries(families).sort((a, b) => a[0].localeCompare(b[0])).forEach(([family, seats]) => {
+        seats.sort((x, y) => compareKeys(x.key, y.key)).forEach(({ key, color }) => {
+          const { side, bench, seat, isExtra } = parseKey(key);
+          const sideLabel = side === 'left' ? 'Left' : 'Right';
+          // Distinct labels so extra-1 and extra-2 survive a round trip.
+          const seatLabel = isExtra ? (seat === 'extra-1' ? 'Extra1' : 'Extra2') : (seat + 1);
+          csv += `${family.replace(/,/g, ';')},${sideLabel},${bench + 1},${seatLabel},${color}\n`;
+        });
+      });
+
+      downloadBlob(csv, `${safeFileName(chart.name)}-${nowISO().split('T')[0]}.csv`, 'text/csv');
+      showNotification('Spreadsheet downloaded', 'success');
+    }
+
+    function importFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target.result;
+        try {
+          if (file.name.toLowerCase().endsWith('.json') || content.trim().startsWith('{')) {
+            importFromJSON(content);
+          } else {
+            importFromCSV(content);
+          }
+        } catch (err) {
+          showNotification('Could not read that file', 'info');
+          console.error('Import error:', err);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function importFromJSON(content) {
+      const data = JSON.parse(content);
+      if (!data || typeof data.seats !== 'object') throw new Error('Not a seating file');
+      const imported = newChart(data.name || 'Imported chart');
+      imported.settings = data.settings || { showExtraChairs: false };
+      imported.families = data.families || {};
+      imported.seats = data.seats || {};
+      imported.colorIndex = data.colorIndex || Object.keys(imported.families).length;
+      // Ensure folding chairs render if any extra seats exist.
+      if (Object.keys(imported.seats).some(k => k.includes('extra'))) {
+        imported.settings.showExtraChairs = true;
+      }
+      chart = imported;
+      applyChartToUI();
+      autoSave();
+      showNotification('Imported as a new chart', 'success');
+    }
+
+    function importFromCSV(content) {
+      const lines = content.split('\n');
+      const imported = newChart('Imported chart');
+
+      if (lines[0] && lines[0].startsWith('Event:')) {
+        imported.name = lines[0].replace('Event:', '').trim() || 'Imported chart';
+      }
+
+      const headerIndex = lines.findIndex(l => l.includes('Family Name'));
+      if (headerIndex === -1) throw new Error('Invalid CSV format');
+
+      let nextColor = 0;
+      for (let i = headerIndex + 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const parts = line.split(',');
+        if (parts.length < 4) continue;
+
+        const family = parts[0].replace(/;/g, ',');
+        const side = parts[1].toLowerCase();
+        const bench = parseInt(parts[2], 10) - 1;
+        const seatRaw = parts[3].trim();
+        let seat;
+        if (seatRaw === 'Extra1' || seatRaw === 'Extra') seat = 'extra-1';
+        else if (seatRaw === 'Extra2') seat = 'extra-2';
+        else seat = parseInt(seatRaw, 10) - 1;
+
+        const color = (parts[4] && parts[4].trim()) || colorAt(nextColor);
+        if (!imported.families[family]) {
+          imported.families[family] = color;
+          nextColor++;
+        }
+        imported.seats[`${side}-${bench}-${seat}`] = { family, color: imported.families[family] };
+      }
+
+      imported.colorIndex = Object.keys(imported.families).length;
+      if (Object.keys(imported.seats).some(k => k.includes('extra'))) {
+        imported.settings.showExtraChairs = true;
+      }
+      chart = imported;
+      applyChartToUI();
+      autoSave();
+      showNotification('Imported as a new chart', 'success');
+    }
+
+    function clearAll() {
+      if (Object.keys(chart.seats).length === 0) return;
+      if (confirm('Clear all seat assignments in this chart?')) {
+        chart.seats = {};
+        chart.families = {};
+        chart.colorIndex = 0;
+        createSeating();
+        updateSummary();
+        updateCurrentColorIndicator();
+        autoSave();
+        showNotification('Chart cleared', 'info');
+      }
+    }
+
+    function showNotification(message, type) {
+      const existing = document.querySelector('.notification');
+      if (existing) existing.remove();
+      const notif = document.createElement('div');
+      notif.className = `notification ${type}`;
+      notif.textContent = message;
+      document.body.appendChild(notif);
+      setTimeout(() => {
+        notif.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notif.remove(), 300);
+      }, 2500);
+    }
+
+    // ---- Migration from the old single-slot save ----------------------------
+    function migrateLegacy() {
+      const store = storage._read();
+      if (Object.keys(store.charts).length > 0) return; // already on new format
+      const legacyRaw = localStorage.getItem(LEGACY_KEY);
+      if (!legacyRaw) return;
+      try {
+        const old = JSON.parse(legacyRaw);
+        const migrated = newChart(old.eventName || 'My seating chart');
+        migrated.seats = old.selectedSeats || {};
+        migrated.families = old.familyColors || {};
+        migrated.colorIndex = old.colorIndex || Object.keys(migrated.families).length;
+        migrated.settings.showExtraChairs = !!old.showExtraChairs;
+        storage.saveChart(migrated);
+      } catch (e) {
+        console.error('Legacy migration failed:', e);
+      }
+    }
+
+    // ---- Event listeners ----------------------------------------------------
+    document.getElementById('familyName').addEventListener('input', updateCurrentColorIndicator);
+
+    document.getElementById('chartName').addEventListener('input', (e) => renameChart(e.target.value));
+
+    document.getElementById('extraChairs').addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      if (!checked) {
+        const extraKeys = Object.keys(chart.seats).filter(k => k.includes('extra'));
+        if (extraKeys.length && !confirm(`Turn off folding chairs? This removes ${extraKeys.length} assignment(s) on them.`)) {
+          e.target.checked = true;
+          return;
+        }
+        extraKeys.forEach(k => delete chart.seats[k]);
+      }
+      chart.settings.showExtraChairs = checked;
+      createSeating();
+      updateSummary();
+      autoSave();
+    });
+
+    // ---- Initialize ---------------------------------------------------------
+    migrateLegacy();
+    const lastId = storage.getLastOpenedId();
+    const existing = lastId ? storage.loadChart(lastId) : null;
+    if (existing) {
+      openChartSilent(existing.id);
+    } else {
+      const all = storage.listCharts();
+      if (all.length) {
+        openChartSilent(all[0].id);
+      } else {
+        chart = newChart();
+        applyChartToUI();
+      }
+    }
+  </script>
+</body>
+</html>
