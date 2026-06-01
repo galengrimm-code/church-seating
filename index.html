@@ -224,8 +224,9 @@
 
     .bench {
       display: flex;
-      gap: 0.2rem;
+      gap: 0.55rem;
       align-items: center;
+      position: relative;
     }
 
     .seating-side.left .bench {
@@ -236,21 +237,67 @@
       justify-content: flex-start;
     }
 
-    /* Bench rail behind seats so they look anchored, not floating */
-    .bench::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 4px;
-      height: 3px;
-      background: #ddd2c2;
-      border-radius: 2px;
-      z-index: 0;
+    /* A pew is ONE continuous bench holding 10 colorable seat positions */
+    .pew {
+      position: relative;
+      display: flex;
+      gap: 2px;
+      background: #e4d8c4;
+      padding: 5px;
+      border-radius: 9px;
+      border: 1px solid #d3c4ab;
+      box-shadow: 0 3px 7px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.45);
     }
 
-    .bench {
+    /* Backrest rail across the top of the bench */
+    .pew::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      right: 7px;
+      top: -6px;
+      height: 6px;
+      background: #cdbb9d;
+      border-radius: 5px 5px 0 0;
+    }
+
+    .pew-seat {
+      width: 42px;
+      height: 42px;
+      border: none;
+      background: #fbf9f5;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+      overflow: hidden;
+      transition: filter 0.12s ease;
+    }
+
+    .pew-seat:first-child { border-radius: 7px 3px 3px 7px; }
+    .pew-seat:last-child { border-radius: 3px 7px 7px 3px; }
+    .pew-seat:hover { filter: brightness(0.93); }
+    .pew-seat:focus-visible {
+      outline: 3px solid #C4A962;
+      outline-offset: 2px;
       position: relative;
+      z-index: 2;
+    }
+
+    /* Shared by pew segments and folding chairs (assignable cells) */
+    .cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cell .initials {
+      pointer-events: none;
+      font-weight: 700;
+      font-size: 0.6rem;
+      line-height: 1.1;
+      padding: 1px;
+      word-break: break-word;
+      text-align: center;
     }
 
     .seat {
@@ -679,6 +726,9 @@
 
       .seat { width: 34px; height: 34px; }
       .seat.extra-chair { width: 30px; height: 30px; }
+      .pew { padding: 3px; gap: 1px; }
+      .pew-seat { width: 28px; height: 28px; }
+      .bench { gap: 0.35rem; }
 
       .summary-section {
         box-shadow: none;
@@ -729,6 +779,7 @@
       .family-input { font-size: 1.1rem; padding: 0.9rem 1rem; }
       .seat { width: 40px; height: 40px; }
       .seat.extra-chair { width: 34px; height: 34px; }
+      .pew-seat { width: 38px; height: 38px; }
       .summary-header { flex-direction: column; align-items: stretch; }
       .summary-actions { justify-content: space-between; }
       .options-grid { flex-direction: column; align-items: stretch; }
@@ -738,7 +789,9 @@
     @media (max-width: 480px) {
       .seat { width: 34px; height: 34px; }
       .seat.extra-chair { width: 30px; height: 30px; }
-      .bench { gap: 0.15rem; }
+      .pew-seat { width: 30px; height: 30px; }
+      .pew { gap: 1px; padding: 3px; }
+      .bench { gap: 0.3rem; }
     }
   </style>
 </head>
@@ -773,8 +826,8 @@
 
     <div class="legend" id="legend">
       <div class="legend-item">
-        <svg viewBox="0 0 44 44" aria-hidden="true"><rect class="body" x="8" y="6" width="28" height="9" rx="3" style="fill:#fff;stroke:#c4b5a1;stroke-width:2"></rect><rect class="body" x="6" y="18" width="32" height="15" rx="4" style="fill:#fff;stroke:#c4b5a1;stroke-width:2"></rect></svg>
-        <span>Pew seat</span>
+        <svg viewBox="0 0 44 44" aria-hidden="true"><rect x="4" y="13" width="36" height="3" rx="1.5" style="fill:#cdbb9d"></rect><rect x="3" y="19" width="38" height="13" rx="3" style="fill:#fbf9f5;stroke:#d3c4ab;stroke-width:2"></rect><line x1="16" y1="21" x2="16" y2="30" style="stroke:#e4d8c4;stroke-width:1.5"></line><line x1="28" y1="21" x2="28" y2="30" style="stroke:#e4d8c4;stroke-width:1.5"></line></svg>
+        <span>Pew bench</span>
       </div>
       <div class="legend-item" id="legendFolding" style="display:none">
         <svg viewBox="0 0 44 44" aria-hidden="true"><rect class="body" x="12" y="5" width="20" height="7" rx="2" style="fill:#fff;stroke:#c4b5a1;stroke-width:2"></rect><rect class="body" x="10" y="16" width="24" height="6" rx="2" style="fill:#fff;stroke:#c4b5a1;stroke-width:2"></rect><path class="legs" d="M12 22 L30 36 M32 22 L14 36" style="fill:none;stroke:#c4b5a1;stroke-width:2;stroke-linecap:round"></path></svg>
@@ -1018,12 +1071,6 @@
     }
 
     // ---- Seat rendering -----------------------------------------------------
-    const PEW_SVG =
-      '<svg class="seat-icon" viewBox="0 0 44 44" aria-hidden="true">' +
-      '<rect class="body" x="8" y="6" width="28" height="9" rx="3"></rect>' +
-      '<rect class="body" x="6" y="18" width="32" height="15" rx="4"></rect>' +
-      '</svg>';
-
     const FOLDING_SVG =
       '<svg class="seat-icon" viewBox="0 0 44 44" aria-hidden="true">' +
       '<rect class="body" x="12" y="5" width="20" height="7" rx="2"></rect>' +
@@ -1042,45 +1089,48 @@
       rightSide.setAttribute('data-side', 'Right Side');
 
       for (let bench = 0; bench < BENCHES; bench++) {
-        const leftBench = document.createElement('div');
-        leftBench.className = 'bench';
-        const rightBench = document.createElement('div');
-        rightBench.className = 'bench';
-
-        if (showExtra) {
-          leftBench.appendChild(createSeat('left', bench, 'extra-1', true));
-        }
-
-        for (let seat = 0; seat < SEATS_PER_BENCH; seat++) {
-          leftBench.appendChild(createSeat('left', bench, seat, false));
-          rightBench.appendChild(createSeat('right', bench, seat, false));
-        }
-
-        if (showExtra) {
-          leftBench.appendChild(createSeat('left', bench, 'extra-2', true));
-          const er1 = createSeat('right', bench, 'extra-1', true);
-          rightBench.insertBefore(er1, rightBench.firstChild);
-          rightBench.appendChild(createSeat('right', bench, 'extra-2', true));
-        }
-
-        leftSide.appendChild(leftBench);
-        rightSide.appendChild(rightBench);
+        leftSide.appendChild(buildBench('left', bench, showExtra));
+        rightSide.appendChild(buildBench('right', bench, showExtra));
       }
 
       document.getElementById('legendFolding').style.display = showExtra ? 'flex' : 'none';
       updateSeatDisplay();
     }
 
-    function createSeat(side, bench, seat, isExtra) {
-      const seatEl = document.createElement('button');
-      seatEl.type = 'button';
-      seatEl.className = 'seat' + (isExtra ? ' extra-chair' : '');
-      seatEl.dataset.side = side;
-      seatEl.dataset.bench = bench;
-      seatEl.dataset.seat = seat;
-      seatEl.innerHTML = (isExtra ? FOLDING_SVG : PEW_SVG) + '<span class="initials"></span>';
-      seatEl.addEventListener('click', () => handleSeatClick(side, bench, seat));
-      return seatEl;
+    // A bench row: [folding chair] [one continuous pew of 10 seats] [folding chair]
+    function buildBench(side, bench, showExtra) {
+      const row = document.createElement('div');
+      row.className = 'bench';
+
+      if (showExtra) row.appendChild(createCell(side, bench, 'extra-1', 'folding'));
+
+      const pew = document.createElement('div');
+      pew.className = 'pew';
+      for (let seat = 0; seat < SEATS_PER_BENCH; seat++) {
+        pew.appendChild(createCell(side, bench, seat, 'pew'));
+      }
+      row.appendChild(pew);
+
+      if (showExtra) row.appendChild(createCell(side, bench, 'extra-2', 'folding'));
+
+      return row;
+    }
+
+    function createCell(side, bench, seat, type) {
+      const el = document.createElement('button');
+      el.type = 'button';
+      if (type === 'folding') {
+        el.className = 'cell seat extra-chair folding-chair';
+        el.innerHTML = FOLDING_SVG + '<span class="initials"></span>';
+      } else {
+        el.className = 'cell pew-seat';
+        el.innerHTML = '<span class="initials"></span>';
+      }
+      el.dataset.side = side;
+      el.dataset.bench = bench;
+      el.dataset.seat = seat;
+      el.addEventListener('click', () => handleSeatClick(side, bench, seat));
+      return el;
     }
 
     function handleSeatClick(side, bench, seat) {
@@ -1104,28 +1154,39 @@
     }
 
     function updateSeatDisplay() {
-      document.querySelectorAll('.seat').forEach(seatEl => {
-        const side = seatEl.dataset.side;
-        const bench = parseInt(seatEl.dataset.bench, 10);
-        const seat = seatEl.dataset.seat;
+      document.querySelectorAll('.cell').forEach(el => {
+        const side = el.dataset.side;
+        const bench = parseInt(el.dataset.bench, 10);
+        const seat = el.dataset.seat;
         const key = `${side}-${bench}-${seat}`;
         const data = chart.seats[key];
-        const initialsEl = seatEl.querySelector('.initials');
+        const isFolding = el.classList.contains('folding-chair');
+        const initialsEl = el.querySelector('.initials');
 
         if (data) {
-          seatEl.style.setProperty('--seat-fill', data.color);
-          seatEl.style.setProperty('--seat-stroke', darken(data.color, 0.25));
-          seatEl.style.setProperty('--seat-text', textColorFor(data.color));
+          if (isFolding) {
+            el.style.setProperty('--seat-fill', data.color);
+            el.style.setProperty('--seat-stroke', darken(data.color, 0.25));
+            el.style.setProperty('--seat-text', textColorFor(data.color));
+          } else {
+            el.style.background = data.color;
+            initialsEl.style.color = textColorFor(data.color);
+          }
           initialsEl.textContent = getInitials(data.family);
-          seatEl.setAttribute('aria-pressed', 'true');
-          seatEl.setAttribute('aria-label', seatHumanLabel(side, bench, seat) + ', assigned to ' + data.family + '. Activate to clear.');
+          el.setAttribute('aria-pressed', 'true');
+          el.setAttribute('aria-label', seatHumanLabel(side, bench, seat) + ', assigned to ' + data.family + '. Activate to clear.');
         } else {
-          seatEl.style.setProperty('--seat-fill', '#ffffff');
-          seatEl.style.setProperty('--seat-stroke', '#c4b5a1');
-          seatEl.style.setProperty('--seat-text', '#3a3530');
+          if (isFolding) {
+            el.style.setProperty('--seat-fill', '#ffffff');
+            el.style.setProperty('--seat-stroke', '#c4b5a1');
+            el.style.setProperty('--seat-text', '#3a3530');
+          } else {
+            el.style.background = '';
+            initialsEl.style.color = '';
+          }
           initialsEl.textContent = '';
-          seatEl.setAttribute('aria-pressed', 'false');
-          seatEl.setAttribute('aria-label', seatHumanLabel(side, bench, seat) + ', empty. Activate to assign current family.');
+          el.setAttribute('aria-pressed', 'false');
+          el.setAttribute('aria-label', seatHumanLabel(side, bench, seat) + ', empty. Activate to assign current family.');
         }
       });
     }
