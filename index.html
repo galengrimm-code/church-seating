@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#C4A962">
-  <title>Church Seating Map</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <title>Pew Planner — Church Seating Map</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Lato:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
     * {
@@ -34,12 +39,40 @@
       margin-bottom: 1.25rem;
     }
 
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .brand-logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      text-align: left;
+    }
+
     .header h1 {
       font-family: 'Cinzel', serif;
       font-size: 2rem;
       font-weight: 600;
       color: #3a3530;
-      margin-bottom: 0.25rem;
+      line-height: 1.05;
+    }
+
+    .brand-tagline {
+      font-family: 'Lato', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+      color: #8b7355;
+      text-transform: uppercase;
+      margin-top: 0.15rem;
     }
 
     /* Chart bar */
@@ -798,7 +831,13 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>Church Seating Map</h1>
+      <div class="brand">
+        <img src="logo.png" alt="Pew Planner" class="brand-logo" width="52" height="52">
+        <div class="brand-text">
+          <h1>Pew Planner</h1>
+          <p class="brand-tagline">Church Seating Map</p>
+        </div>
+      </div>
       <div class="chart-bar">
         <input type="text" class="chart-name-input" id="chartName" placeholder="Untitled chart" aria-label="Chart name">
         <span class="save-status" id="saveStatus">Saved</span>

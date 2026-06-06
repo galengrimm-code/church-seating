@@ -1,7 +1,7 @@
-# Church Seating Map
+# Pew Planner
 
-A free, single-file tool for assigning families and guests to specific seats at church
-events — funerals, weddings, special services — and printing the result for ushers.
+A free, single-file church seating chart tool — assign families and guests to specific
+seats at church events (funerals, weddings, special services) and print the result for ushers.
 
 No accounts, no database, no internet required. Open the file in a browser and go.
 Everything you enter stays on your own device.
